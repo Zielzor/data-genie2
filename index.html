@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV File Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 20px;
+        }
+        
+        h1 {
+            color: #333;
+        }
+        
+        .error {
+            color: red;
+        }
+        
+        form {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        select {
+            width: 200px;
+            height: 100px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .statistics {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV File Upload</h1>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    {% if data_loaded %}
+        <form method="post" action="/filter">
+            <label for="columns">Select Columns:</label>
+            <select id="columns" name="columns" multiple>
+                {% for col in column_names %}
+                <option value="{{ col }}">{{ col }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            {% if df %}
+                {% for col in column_names %}
+                <label for="{{ col }}">{{ col }}:</label>
+                <br>
+                {% for val in df[col].unique() %}
+                <input type="checkbox" name="{{ col }}" value="{{ val }}"> {{ val }}<br>
+                {% endfor %}
+                {% endfor %}
+            {% endif %}
+            <br>
+            <input type="submit" value="Filter">
+        </form>
+        {% if filtered_df is defined %}
+        <h2>Filtered Data:</h2>
+        <table>
+            <thead>
+                <tr>
+                    {% for col in filtered_df.columns %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for _, row in filtered_df.iterrows() %}
+                <tr>
+                    {% for _, val in row.iteritems() %}
+                    <td>{{ val }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <form method="post" action="/export">
+            <input type="hidden" name="data" value="{{ filtered_df.to_csv(index=False) }}">
+            <input type="submit" value="Export as CSV">
+        </form>
+        {% endif %}
+        
+        <form method="post" action="/statistics">
+            <input type="submit" value="Calculate Descriptive Statistics">
+        </form>
+        
+        {% if statistics %}
+            <h2>Descriptive Statistics:</h2>
+            {{ statistics|safe }}
+        {% endif %}
+        
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" action="/upload">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+</body>
+</html>
