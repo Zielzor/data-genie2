@@ -41,5 +41,8 @@ def calculate_statistics():
     statistics = df.describe().to_html()
     return render_template('index.html', column_names=column_names, statistics=statistics, data_loaded=True)
 
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
